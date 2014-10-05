@@ -12,9 +12,15 @@ if __name__ == "__main__":
         estimate.LongFingerEstimate(),
         estimate.RightHandEstimate(),
         estimate.ThumbFingerEstimate(),
-        estimate.UnnamedFingerEstimate()
+        estimate.UnnamedFingerEstimate(),
+        estimate.UsageEstimate()
     ]
     for listener in list_key_estimate:
         qwertyAnalyzer.add_listener(listener)
 
     qwertyAnalyzer.analyze()
+
+    for key in layout.layoutQwerty.keys:
+        if key.pos_x == 0:
+            print()
+        print("%s%s%s" % ('|', key.statistics, '|'), end=' ')

@@ -31,17 +31,15 @@ class Analyzer(object):
             listener.on_end_analyze(self.layout)
 
 
-class KeyListener(object):
+class AnalyzeListener(object):
     def on_find_key(self, layout, key):
         pass
 
-
-class EndAnalyzeListener(object):
     def on_end_analyze(self, layout):
         pass
 
 
-class EndEstimateListener(KeyListener, EndAnalyzeListener):
+class EndEstimateListener(AnalyzeListener):
     default_rate = 0.9
     max_rate = 1
     listPos = []
@@ -57,18 +55,16 @@ class EndEstimateListener(KeyListener, EndAnalyzeListener):
 
     def update_key_rate(self, rate, key):
         key.statistics[self.__class__.__name__] = rate
-        key.rate *= rate
-
-
-class KeyEstimateListener(KeyListener):
-    pass
+        key.statistics['rate'] *= rate
 
 
 class Key(object):
-    rate = 1
 
     def __init__(self, name, symbol, pos_x=-1, pos_y=-1, mod=-1):
-        self.statistics = {}
+        self.statistics = {
+            'rate': 1,
+            'usage': 1
+        }
         self.name = name
         self.symbol = symbol
         self.pos_x = pos_x

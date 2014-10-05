@@ -1,4 +1,4 @@
-from app.models import KeyEstimateListener, EndEstimateListener
+from app.models import AnalyzeListener, EndEstimateListener
 
 
 class MiddleRowEstimate(EndEstimateListener):
@@ -48,7 +48,7 @@ class CenterActivityEstimate(EndEstimateListener):
     ]
 
 
-class ChangeHandsEstimate(KeyEstimateListener):
+class ChangeHandsEstimate(AnalyzeListener):
     description = 'Эффективное чередование рук'
 
     left_hand = [
@@ -110,3 +110,9 @@ class ThumbFingerEstimate(EndEstimateListener):
         [],
         [0]
     ]
+
+
+class UsageEstimate(AnalyzeListener):
+
+    def on_find_key(self, layout, key):
+        key.statistics['usage'] += 1
