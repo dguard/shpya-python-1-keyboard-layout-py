@@ -19,8 +19,3 @@ if __name__ == "__main__":
         qwertyAnalyzer.add_listener(listener)
 
     qwertyAnalyzer.analyze()
-
-    for key in layout.layoutQwerty.keys:
-        if key.pos_x == 0:
-            print()
-        print("%s%s%s" % ('|', key.statistics, '|'), end=' ')
