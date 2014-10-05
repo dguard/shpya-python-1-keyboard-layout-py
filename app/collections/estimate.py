@@ -113,6 +113,13 @@ class ThumbFingerEstimate(EndEstimateListener):
 
 
 class UsageEstimate(AnalyzeListener):
-
     def on_find_key(self, layout, key):
         key.statistics['usage'] += 1
+
+
+class SpeedEstimate(AnalyzeListener):
+    default_key_speed = 200
+
+    def on_end_analyze(self, layout):
+        for key in layout.keys:
+            key.statistics['speed'] = '{0:.2f}'.format(1 / key.statistics['rate'] * self.default_key_speed)
