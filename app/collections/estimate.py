@@ -1,16 +1,18 @@
-from app.models import EstimateListener
+from app.models import KeyEstimateListener, EndEstimateListener
 
-class MiddleRowEstimate(EstimateListener):
+
+class MiddleRowEstimate(EndEstimateListener):
     description = 'Пальцы редко убегают из среднего ряда'
 
-    def on_find_key(self, layout, key):
-        rate = self.default_rate
-        if key.pos_x == 2:
-            rate = self.max_rate
-        self.update_key_rate(rate, key, layout)
+    def on_end_analyze(self, layout):
+        for key in layout.keys:
+            rate = self.default_rate
+            if key.pos_y == 2:
+                rate = self.max_rate
+            self.update_key_rate(rate, key)
 
 
-class LongFingerEstimate(EstimateListener):
+class LongFingerEstimate(EndEstimateListener):
     description = 'Работают указательные пальцы'
 
     listPos = [
@@ -22,7 +24,7 @@ class LongFingerEstimate(EstimateListener):
     ]
 
 
-class UnnamedFingerEstimate(EstimateListener):
+class UnnamedFingerEstimate(EndEstimateListener):
     description = 'Работают безымянные пальцы'
 
     listPos = [
@@ -34,7 +36,7 @@ class UnnamedFingerEstimate(EstimateListener):
     ]
 
 
-class CenterActivityEstimate(EstimateListener):
+class CenterActivityEstimate(EndEstimateListener):
     description = 'Наибольшая активность сосредоточена в центре клавиатуры'
 
     listPos = [
@@ -46,7 +48,7 @@ class CenterActivityEstimate(EstimateListener):
     ]
 
 
-class ChangeHandsEstimate(EstimateListener):
+class ChangeHandsEstimate(KeyEstimateListener):
     description = 'Эффективное чередование рук'
 
     left_hand = [
@@ -62,12 +64,17 @@ class ChangeHandsEstimate(EstimateListener):
 
     def on_find_key(self, layout, key):
         if self.previous_key:
+            if 'hands_changed' not in key.statistics:
+                key.statistics['hands_changed'] = 0
             if self.hands_changed(self.previous_key, key):
-                rate = self.max_rate
-            else:
-                rate = self.default_rate
-            self.update_key_rate(rate, key, layout)
+                key.statistics['hands_changed'] += 1
         self.previous_key = key
+
+    @staticmethod
+    def on_end_analyze(layout):
+        for key in layout.keys:
+            if 'hands_changed' not in key.statistics:
+                key.statistics['hands_changed'] = 0
 
     def hands_changed(self, previous_key, current_key):
         previous_hand = self.detect_hand(previous_key)
@@ -75,26 +82,26 @@ class ChangeHandsEstimate(EstimateListener):
         return previous_hand != current_hand
 
     def detect_hand(self, key):
-        for pos_y, row in self.left_hand:
+        for pos_y, row in enumerate(self.left_hand):
             for pos_x in row:
                 if key.pos_x == pos_x and key.pos_y == pos_y:
                     return "left"
         return "right"
 
 
-class RightHandEstimate(EstimateListener):
+class RightHandEstimate(EndEstimateListener):
     description = 'Правая рука задействована чуть больше, чем левая'
 
     listPos = [
         [7, 8, 9, 10, 11, 12],
         [5, 6, 7, 8, 9, 10, 11, 12],
         [5, 6, 7, 8, 9, 10, 11],
-        [5, 6, 7, 8, 9],
+        [5, 6, 7, 8, 9, 10],
         [0]
     ]
 
 
-class ThumbFingerEstimate(EstimateListener):
+class ThumbFingerEstimate(EndEstimateListener):
     description = 'Работают большие пальцы'
     listPos = [
         [],
