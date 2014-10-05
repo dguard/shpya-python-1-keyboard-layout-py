@@ -63,7 +63,7 @@ class Key(object):
     def __init__(self, name, symbol, pos_x=-1, pos_y=-1, mod=-1):
         self.statistics = {
             'rate': 1,
-            'usage': 1
+            'usage': 0
         }
         self.name = name
         self.symbol = symbol
@@ -82,6 +82,7 @@ class Layout(object):
 
     def __init__(self, name, mods):
         self.name = name
+        self.statistics = {}
         self.keys = self.format_keys_in_mods(mods)
 
     @staticmethod

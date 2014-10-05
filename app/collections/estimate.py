@@ -1,7 +1,7 @@
 from app.models import AnalyzeListener, EndEstimateListener
 
 
-class MiddleRowEstimate(EndEstimateListener):
+class KeyRateMiddleRow(EndEstimateListener):
     description = 'Пальцы редко убегают из среднего ряда'
 
     def on_end_analyze(self, layout):
@@ -12,7 +12,7 @@ class MiddleRowEstimate(EndEstimateListener):
             self.update_key_rate(rate, key)
 
 
-class LongFingerEstimate(EndEstimateListener):
+class KeyRateLongFinger(EndEstimateListener):
     description = 'Работают указательные пальцы'
 
     listPos = [
@@ -24,7 +24,7 @@ class LongFingerEstimate(EndEstimateListener):
     ]
 
 
-class UnnamedFingerEstimate(EndEstimateListener):
+class KeyRateUnnamedFinger(EndEstimateListener):
     description = 'Работают безымянные пальцы'
 
     listPos = [
@@ -36,7 +36,7 @@ class UnnamedFingerEstimate(EndEstimateListener):
     ]
 
 
-class CenterActivityEstimate(EndEstimateListener):
+class KeyRateCenterActivity(EndEstimateListener):
     description = 'Наибольшая активность сосредоточена в центре клавиатуры'
 
     listPos = [
@@ -48,7 +48,30 @@ class CenterActivityEstimate(EndEstimateListener):
     ]
 
 
-class ChangeHandsEstimate(AnalyzeListener):
+class KeyRateRightHand(EndEstimateListener):
+    description = 'Правая рука задействована чуть больше, чем левая'
+
+    listPos = [
+        [7, 8, 9, 10, 11, 12],
+        [5, 6, 7, 8, 9, 10, 11, 12],
+        [5, 6, 7, 8, 9, 10, 11],
+        [5, 6, 7, 8, 9, 10],
+        [0]
+    ]
+
+
+class KeyRateThumbFinger(EndEstimateListener):
+    description = 'Работают большие пальцы'
+    listPos = [
+        [],
+        [],
+        [],
+        [],
+        [0]
+    ]
+
+
+class KeyChangeHands(AnalyzeListener):
     description = 'Эффективное чередование рук'
 
     left_hand = [
@@ -70,8 +93,7 @@ class ChangeHandsEstimate(AnalyzeListener):
                 key.statistics['hands_changed'] += 1
         self.previous_key = key
 
-    @staticmethod
-    def on_end_analyze(layout):
+    def on_end_analyze(self, layout):
         for key in layout.keys:
             if 'hands_changed' not in key.statistics:
                 key.statistics['hands_changed'] = 0
@@ -89,37 +111,50 @@ class ChangeHandsEstimate(AnalyzeListener):
         return "right"
 
 
-class RightHandEstimate(EndEstimateListener):
-    description = 'Правая рука задействована чуть больше, чем левая'
-
-    listPos = [
-        [7, 8, 9, 10, 11, 12],
-        [5, 6, 7, 8, 9, 10, 11, 12],
-        [5, 6, 7, 8, 9, 10, 11],
-        [5, 6, 7, 8, 9, 10],
-        [0]
-    ]
-
-
-class ThumbFingerEstimate(EndEstimateListener):
-    description = 'Работают большие пальцы'
-    listPos = [
-        [],
-        [],
-        [],
-        [],
-        [0]
-    ]
-
-
-class UsageEstimate(AnalyzeListener):
+class KeyUsage(AnalyzeListener):
     def on_find_key(self, layout, key):
         key.statistics['usage'] += 1
 
 
-class SpeedEstimate(AnalyzeListener):
+class KeySpeed(AnalyzeListener):
     default_key_speed = 200
 
     def on_end_analyze(self, layout):
         for key in layout.keys:
-            key.statistics['speed'] = '{0:.2f}'.format(1 / key.statistics['rate'] * self.default_key_speed)
+            key.statistics['speed'] = 1 / key.statistics['rate'] * self.default_key_speed
+
+
+class KeyTime(AnalyzeListener):
+    depends = [KeyUsage, KeySpeed]
+
+    def on_end_analyze(self, layout):
+        for key in layout.keys:
+            key.statistics['time'] = key.statistics['usage'] * key.statistics['speed']
+
+
+class TimeTotal(AnalyzeListener):
+    depends = [KeyTime]
+
+    def on_end_analyze(self, layout):
+        time_total = 0
+        for key in layout.keys:
+            time_total += key.statistics['time']
+        layout.statistics['time_total'] = time_total
+
+
+class UsageTotal(AnalyzeListener):
+    depends = [KeyUsage]
+
+    def on_end_analyze(self, layout):
+        usage_total = 0
+        for key in layout.keys:
+            usage_total += key.statistics['usage']
+        layout.statistics['usage_total'] = usage_total
+
+
+class RateTotal(AnalyzeListener):
+    def on_end_analyze(self, layout):
+        rate_total = 0
+        for key in layout.keys:
+            rate_total += key.statistics['rate']
+        layout.statistics['rate_total'] = rate_total
