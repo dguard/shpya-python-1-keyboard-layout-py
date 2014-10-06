@@ -5,7 +5,7 @@ class Analyzer(object):
 
     def __init__(self, text, layout):
         self.text = text
-        self.layout = layout
+        self.layout = copy.deepcopy(layout)
         self.statistics = {}
         self.listeners = []
 
@@ -21,6 +21,7 @@ class Analyzer(object):
         for key in self.layout.keys:
             if key.symbol == symbol:
                 self.on_find_key(key)
+                break
 
     def on_find_key(self, key):
         for listener in self.listeners:
@@ -39,7 +40,7 @@ class AnalyzeListener(object):
         pass
 
 
-class EndEstimateListener(AnalyzeListener):
+class EstimateListener(AnalyzeListener):
     default_rate = 0.9
     max_rate = 1
     listPos = []
@@ -47,11 +48,24 @@ class EndEstimateListener(AnalyzeListener):
     def on_end_analyze(self, layout):
         for key in layout.keys:
             rate = self.default_rate
+            field = self.__class__.__name__ + '_count'
+            if field not in key.statistics:
+                key.statistics[field] = 0
             for pos_y, row in enumerate(self.listPos):
                 for pos_x in row:
                     if key.pos_y == pos_y and key.pos_x == pos_x:
+                        self.update_count(key, key.statistics['usage'])
                         rate = self.max_rate
             self.update_key_rate(rate, key)
+
+    def update_count(self, key, value, add=False):
+        field = self.__class__.__name__ + '_count'
+        if add:
+            if field not in key.statistics:
+                key.statistics[field] = 0
+            key.statistics[field] += value
+        else:
+            key.statistics[field] = value
 
     def update_key_rate(self, rate, key):
         key.statistics[self.__class__.__name__] = rate
